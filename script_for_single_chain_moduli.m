@@ -1,12 +1,12 @@
 % Script to calculate viscoelastic properties of condensates and render
 % single-chain sub-graphs
 
-% Uses overall graph with adjacencies defined by all residues
+% Uses graph with chains as residues
 
 % To run, this program needs generate_site_graph.m,
-% calculate_single_chain_moduli.m, natsort.m, and natsortfiles.m, with the
-% latter program from the MathWorks File Exchange. Takes as input data in
-% LAMMPS trajectory format.
+% calculate_single_chain_moduli.m, intersections.m, natsort.m, and
+% natsortfiles.m, with the latter three programs from the MathWorks File
+% Exchange. Takes as input data in LAMMPS trajectory format.
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
@@ -250,14 +250,14 @@ for k = 1:numfiles
     % Calculate average viscosity per trajectory
     avgViscosity(k) = vertcat(mean(out4(:)));
     % Propagate error for average viscosity per trajectory
-    stdViscosity_snap = (1/SnapEq)^2*sum(reshape(out5(:).^2,SnapEq,[]));
-    stdViscosity(k) = sqrt(stdViscosity_snap);
+    varViscosity_snap = (1/SnapEq)^2*sum(reshape(out5(:).^2,SnapEq,[]));
+    stdViscosity(k) = sqrt(varViscosity_snap);
 
     % Calculate average compliance per trajectory
     avgCompliance(k) = vertcat(mean(out6(:)));
     % Propagate error for average compliance per trajectory
-    stdCompliance_snap = (1/SnapEq)^2*sum(reshape(out7(:).^2,SnapEq,[]));
-    stdCompliance(k) = sqrt(stdCompliance_snap);
+    varCompliance_snap = (1/SnapEq)^2*sum(reshape(out7(:).^2,SnapEq,[]));
+    stdCompliance(k) = sqrt(varCompliance_snap);
 
     % Calculate average of relaxation times per trajectory
     tau_times_snap = vertcat(mean(cell2mat(out8(:))));
@@ -281,12 +281,12 @@ for k = 1:numfiles
 
     % Generate and save unweighted graphs
     fig1 = figure('visible','off');
-    d = plot(repGraph{k},'MarkerSize',5,'NodeCData',deg,'EdgeAlpha',1);
+    plot(repGraph{k},'MarkerSize',5,'NodeCData',deg,'EdgeAlpha',1);
     set(gca,'XTickLabel',[],'YTickLabel',[])
     set(gca,'XTick',[],'YTick',[])
     colorbar
     set(gca,'FontSize',24)
-    str_append = '-single_B';
+    str_append = '-single';
     str_saveas = sprintf('%s',TruncName,str_append);
     saveas(fig1,str_saveas,'png')
 
@@ -328,38 +328,38 @@ crossover_y = mean(reshape(avgY0,Repl,[]));
 
 std_relaxation_modulus = reshape(stdGt,Repl,[]);
 % Compare replicas and propagate error
-std_relaxation_modulus2_sq = (1/Repl)^2*reshape(sum(reshape(vertcat(std_relaxation_modulus{:}).^2,Repl,[])),[],minLength_t);
-std_relaxation_modulus2 = sqrt(std_relaxation_modulus2_sq); % Standard deviation
+var_relaxation_modulus2 = (1/Repl)^2*reshape(sum(reshape(vertcat(std_relaxation_modulus{:}).^2,Repl,[])),[],minLength_t);
+std_relaxation_modulus2 = sqrt(var_relaxation_modulus2); % Standard deviation
 
 std_storage_modulus = reshape(stdStorage,Repl,[]);
-std_storage_modulus2_sq = (1/Repl)^2*reshape(sum(reshape(vertcat(std_storage_modulus{:}).^2,Repl,[])),[],minLength_Freq);
-std_storage_modulus2 = sqrt(std_storage_modulus2_sq); % Standard deviation
+var_storage_modulus2 = (1/Repl)^2*reshape(sum(reshape(vertcat(std_storage_modulus{:}).^2,Repl,[])),[],minLength_Freq);
+std_storage_modulus2 = sqrt(var_storage_modulus2); % Standard deviation
 
 std_loss_modulus = reshape(stdLoss,Repl,[]);
-std_loss_modulus2_sq = (1/Repl)^2*reshape(sum(reshape(vertcat(std_loss_modulus{:}).^2,Repl,[])),[],minLength_Freq);
-std_loss_modulus2 = sqrt(std_loss_modulus2_sq); % Standard deviation
+var_loss_modulus2 = (1/Repl)^2*reshape(sum(reshape(vertcat(std_loss_modulus{:}).^2,Repl,[])),[],minLength_Freq);
+std_loss_modulus2 = sqrt(var_loss_modulus2); % Standard deviation
 
 % Propagate error for viscosity and compliance
 
-Sviscsq = (1/Repl)^2*sum(reshape(stdViscosity.^2,Repl,[]));
-Svisc = sqrt(Sviscsq); % Standard deviation of viscosity
+varVisc = (1/Repl)^2*sum(reshape(stdViscosity.^2,Repl,[]));
+Svisc = sqrt(varVisc); % Standard deviation of viscosity
 
-Scomplsq = (1/Repl)^2*sum(reshape(stdCompliance.^2,Repl,[]));
-Scompl = sqrt(Scomplsq); % Standard deviation of compliance
+varCompl = (1/Repl)^2*sum(reshape(stdCompliance.^2,Repl,[]));
+Scompl = sqrt(varCompl); % Standard deviation of compliance
 
 % Propagate error for relaxation times
 
 std_relaxation_times = reshape(std_tau_times,Repl,[]);
-std_relaxation_times2_sq = (1/Repl)^2*reshape(sum(reshape(vertcat(std_relaxation_times{:}),Repl,[])),[],minLength_times);
-std_relaxation_times2 = sqrt(std_relaxation_times2_sq); % Standard deviation
+var_relaxation_times2 = (1/Repl)^2*reshape(sum(reshape(vertcat(std_relaxation_times{:}),Repl,[])),[],minLength_times);
+std_relaxation_times2 = sqrt(var_relaxation_times2); % Standard deviation
 
 % Propagate error for crossover
 
-SX0sq = (1/Repl)^2*sum(reshape(stdX0.^2,Repl,[]));
-SX0 = sqrt(SX0sq); % Standard deviation of X0
+varX0 = (1/Repl)^2*sum(reshape(stdX0.^2,Repl,[]));
+SX0 = sqrt(varX0); % Standard deviation of X0
 
-SY0sq = (1/Repl)^2*sum(reshape(stdY0.^2,Repl,[]));
-SY0 = sqrt(SY0sq); % Standard deviation of Y0
+varY0 = (1/Repl)^2*sum(reshape(stdY0.^2,Repl,[]));
+SY0 = sqrt(varY0); % Standard deviation of Y0
 
 % Time and frequency vectors at each temperature
 
@@ -386,7 +386,7 @@ C_aug = cell(n_max,n_vectors);
 for ii = 1:n_vectors
     C_aug(1:n2(ii),ii) = num2cell(newC{ii}(:));
 end
-writetable(cell2table(C_aug),'moduli_single_chain_B.csv','WriteVariableNames',0)
+writetable(cell2table(C_aug),'moduli_single_chain.csv','WriteVariableNames',0)
 
 % Include modes
 
@@ -398,5 +398,5 @@ C_aug = cell(n_max,n_vectors);
 for ii = 1:n_vectors
     C_aug(1:n2(ii),ii) = num2cell(newC{ii}(:));
 end
-writetable(cell2table(C_aug),'times_single_chain_B.csv','WriteVariableNames',0)
+writetable(cell2table(C_aug),'times_single_chain.csv','WriteVariableNames',0)
 

@@ -1,11 +1,12 @@
 % Script to calculate viscoelastic properties of condensates
 
-% Uses graph with chains as nodes; adjacencies are defined by all sites
+% Uses graph with chains as nodes; adjacencies are defined by physical
+% contact between any residues on different chains
 
-% To run, this program needs generate_all_chain_graph.m,
-% calculate_overall_moduli.m, natsort.m, and natsortfiles.m, with the
-% latter two programs from the MathWorks File Exchange. Takes as input data
-% in LAMMPS trajectory format.
+% To run, this program needs generate_chain_graph.m,
+% calculate_collective_moduli.m, intersections.m, natsort.m, and
+% natsortfiles.m, with the latter three programs from the MathWorks File
+% Exchange. Takes as input data in LAMMPS trajectory format.
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
@@ -18,7 +19,7 @@ SnapTot = 605; % Total number of snapshots in trajectory
 SnapEq = 10; % Number of equilibrated snapshots to analyze at end of file (> 1)
 Repl = 3; % Number of simulations (replicas) per temperature
 b = 1; % Kuhn length
-rho = 1; % Number of beads per unit volume
+phi = 1; % Volume fraction (even though phi << 1, this doesn't matter)
 xi = 1; % Friction coefficient of the background
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -95,11 +96,11 @@ for k = 1:numfiles
         A = data((SitesInSystem*n-SitesInSystem+1):SitesInSystem*n,:);
 
         % Generate relevant graphs
-        CondensateChainsG = generate_all_chain_graph(A,Length);
+        CondensateChainsG = generate_chain_graph(A,Length);
 
         % Calculate moduli
         [tvec,Gt,Freq,Storage,Loss,Visc,Comp,tau,X0,Y0]...
-            = calculate_overall_moduli(CondensateChainsG,b,T,rho,xi,t,w);
+            = calculate_collective_moduli(CondensateChainsG,b,T,phi,xi,t,w);
 
         % Relaxation modulus
         out1{n} = Gt;
@@ -182,12 +183,12 @@ for k = 1:numfiles
 
     % Generate and save unweighted graphs
     fig1 = figure('visible','off');
-    d = plot(repGraph{k},'MarkerSize',5,'NodeCData',deg,'EdgeAlpha',1);
+    plot(repGraph{k},'MarkerSize',5,'NodeCData',deg,'EdgeAlpha',1);
     set(gca,'XTickLabel',[],'YTickLabel',[])
     set(gca,'XTick',[],'YTick',[])
     colorbar
     set(gca,'FontSize',24)
-    str_append = '-overall_B';
+    str_append = '-overall';
     str_saveas = sprintf('%s',TruncName,str_append);
     saveas(fig1,str_saveas,'png')
 
@@ -225,32 +226,32 @@ crossover_y = mean(reshape(avgY0,Repl,[]));
 
 std_relaxation_modulus = reshape(stdGt,Repl,[]);
 % Compare replicas and propagate error
-std_relaxation_modulus2_sq = (1/Repl)^2*reshape(sum(reshape(vertcat(std_relaxation_modulus{:}).^2,Repl,[])),[],minLength_t);
-std_relaxation_modulus2 = sqrt(std_relaxation_modulus2_sq); % Standard deviation
+var_relaxation_modulus2 = (1/Repl)^2*reshape(sum(reshape(vertcat(std_relaxation_modulus{:}).^2,Repl,[])),[],minLength_t);
+std_relaxation_modulus2 = sqrt(var_relaxation_modulus2); % Standard deviation
 
 std_storage_modulus = reshape(stdStorage,Repl,[]);
-std_storage_modulus2_sq = (1/Repl)^2*reshape(sum(reshape(vertcat(std_storage_modulus{:}).^2,Repl,[])),[],minLength_Freq);
-std_storage_modulus2 = sqrt(std_storage_modulus2_sq); % Standard deviation
+var_storage_modulus2 = (1/Repl)^2*reshape(sum(reshape(vertcat(std_storage_modulus{:}).^2,Repl,[])),[],minLength_Freq);
+std_storage_modulus2 = sqrt(var_storage_modulus2); % Standard deviation
 
 std_loss_modulus = reshape(stdLoss,Repl,[]);
-std_loss_modulus2_sq = (1/Repl)^2*reshape(sum(reshape(vertcat(std_loss_modulus{:}).^2,Repl,[])),[],minLength_Freq);
-std_loss_modulus2 = sqrt(std_loss_modulus2_sq); % Standard deviation
+var_loss_modulus2 = (1/Repl)^2*reshape(sum(reshape(vertcat(std_loss_modulus{:}).^2,Repl,[])),[],minLength_Freq);
+std_loss_modulus2 = sqrt(var_loss_modulus2); % Standard deviation
 
 % Propagate error for viscosity and compliance
 
-Sviscsq = (1/Repl)^2*sum(reshape(stdViscosity.^2,Repl,[]));
-Svisc = sqrt(Sviscsq); % Standard deviation of viscosity
+varVisc = (1/Repl)^2*sum(reshape(stdViscosity.^2,Repl,[]));
+Svisc = sqrt(varVisc); % Standard deviation of viscosity
 
-Scomplsq = (1/Repl)^2*sum(reshape(stdCompliance.^2,Repl,[]));
-Scompl = sqrt(Scomplsq); % Standard deviation of compliance
+varCompl = (1/Repl)^2*sum(reshape(stdCompliance.^2,Repl,[]));
+Scompl = sqrt(varCompl); % Standard deviation of compliance
 
 % Propagate error for crossover
 
-SX0sq = (1/Repl)^2*sum(reshape(stdX0.^2,Repl,[]));
-SX0 = sqrt(SX0sq); % Standard deviation of X0
+varX0 = (1/Repl)^2*sum(reshape(stdX0.^2,Repl,[]));
+SX0 = sqrt(varX0); % Standard deviation of X0
 
-SY0sq = (1/Repl)^2*sum(reshape(stdY0.^2,Repl,[]));
-SY0 = sqrt(SY0sq); % Standard deviation of Y0
+varY0 = (1/Repl)^2*sum(reshape(stdY0.^2,Repl,[]));
+SY0 = sqrt(varY0); % Standard deviation of Y0
 
 % Time and frequency vectors at each temperature
 
@@ -277,7 +278,7 @@ C_aug = cell(n_max,n_vectors);
 for ii = 1:n_vectors
     C_aug(1:n2(ii),ii) = num2cell(newC{ii}(:));
 end
-writetable(cell2table(C_aug),'moduli_overall_B.csv','WriteVariableNames',0)
+writetable(cell2table(C_aug),'moduli_overall.csv','WriteVariableNames',0)
 
 % Include modes
 
@@ -289,5 +290,5 @@ C_aug = cell(n_max,n_vectors);
 for ii = 1:n_vectors
     C_aug(1:n2(ii),ii) = num2cell(newC{ii}(:));
 end
-writetable(cell2table(C_aug),'times_overall_B.csv','WriteVariableNames',0)
+writetable(cell2table(C_aug),'times_overall.csv','WriteVariableNames',0)
 

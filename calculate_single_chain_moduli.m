@@ -3,9 +3,9 @@ function [tvec,Gt,Freq,Storage,Loss,avg_Visc,std_Visc,avg_Comp,...
     calculate_single_chain_moduli(CondensateSitesG,ind_chain,Sites,...
     siteType,b,xi,T,phi,RelEl,t,w)
 
-% Calculates viscoelastic moduli for each chain according to
-% graph-theoretic formulation of Rouse-Zimm model. Uses edge-weighted
-% single-chain sub-graphs.
+% Calculates viscoelastic properties of each chain according to
+% graph-theoretic formulation of Rouse-Zimm model. Uses Boltzmann-
+% edge-weighted single-chain sub-graphs.
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
@@ -23,7 +23,7 @@ for ii = 1:NumChains
     ChainsSubG = subgraph(CondensateSitesG,AllSitesInChain);
     % Edges in sub-graph represent intrachain interactions only.
     
-    % Weight edges by absolute value of relative energies:
+    % Boltzmann-weight edges:
 
     % Find edges
     edgeID = table2array(ChainsSubG.Edges);
@@ -37,7 +37,7 @@ for ii = 1:NumChains
     % Assign edge weights
     idx = sub2ind(size(RelEl),edge_type(:,1),edge_type(:,2)); % Index
     edge_energies = RelEl(idx); % Energy associated with each edge
-    W = diag(abs(edge_energies)); % Matrix of edge weights
+    W = diag(exp(-edge_energies./T)); % Matrix of edge weights
     
     % Calculate graph laplacian, aka Zimm matrix, for weighted graph
     B = incidence(ChainsSubG); % Unweighted incidence matrix
@@ -70,6 +70,8 @@ Gt(t) = (phi*T/(NumChains*b^3))*sum(exp(-t./tau_all))*heaviside(t);
 % The Heaviside function sets G(t) = 0 for t < 0.
 
 % Take the continuous-time Fourier transform
+% (Could probably calculate this analytically to speed up the code.
+% See equations in Rouse 1953.)
 Gw(w) = fourier(Gt(t),t,w); % Angular frequency w
 
 % Calculate the average dynamic moduli

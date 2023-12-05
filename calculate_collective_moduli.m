@@ -1,7 +1,7 @@
 function [tvec,Gt,Freq,Storage,Loss,Visc,Comp,tau,X0,Y0] = ...
     calculate_overall_moduli(CondensateChainsG,b,T,phi,xi,t,w)
 
-% Calculates viscoelastic moduli for condensate according to
+% Calculates viscoelastic properties of condensate according to
 % graph-theoretic formulation of Rouse-Zimm model.
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -27,10 +27,12 @@ Visc = (T*phi/(NumChains*b^3))*sum(tau);
 Comp = ((NumChains*b^3)/(phi*T))*sum(tau.^2)/sum(tau).^2;
 
 % Calculate the relaxation modulus in units of pressure
-Gt(t) = (phi*T/(NumChains*b^3))*sum(tau.*exp(-t./tau))*heaviside(t);
+Gt(t) = (phi*T/(NumChains*b^3))*sum(exp(-t./tau))*heaviside(t);
 % The Heaviside function sets G(t) = 0 for t < 0.
 
 % Take the continuous-time Fourier transform
+% (Could probably calculate this analytically to speed up the code.
+% See equations in Rouse 1953.)
 Gw(w) = fourier(Gt(t),t,w); % Angular frequency, w
 
 % Calculate the average dynamic moduli

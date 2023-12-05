@@ -1,6 +1,7 @@
 function CondensateChainsAllG = generate_all_chain_graph(A,Length)
 
-% Makes graph of all chains in condensate with respect to all sites
+% Makes graph of all chains in condensate using physical contact between
+% residues to define chain adjacencies
 
 % Takes as input A = data in LAMMPS trajectory format, Length = length of
 % cubic box on each side
