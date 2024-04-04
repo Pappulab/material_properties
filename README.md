@@ -4,4 +4,4 @@ Simulation results and analysis codes for the computation of rheological propert
 
 The `Source_Data` folder contains all experimental and computational data for the final figures. The `simulation_results` folder contains the raw data.
 
-The `trajectories` folder contains the three trajectory files for the WT^+NLS system at the simulation temperature T = 53.
+The `trajectories` folder contains the three trajectory files for the WT^+NLS system at the simulation temperature, T = 53.
