@@ -1,7 +1,7 @@
 # Overview
 
 
-This directory contains the zipfile `trajectory_files.zip` which in turn contains the following LaSSSI trajectory in LAMMPS ASCII dump format.
+This directory contains the zipfile `trajectory_files.zip`, which in turn contains the following LaSSSI trajectory in LAMMPS ASCII dump format:
 
 
 1. WT_trj_T53_1.lammpstrj
