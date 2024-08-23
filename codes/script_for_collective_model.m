@@ -241,7 +241,7 @@ function CondensateChainsG = generate_chain_graph(A,Length)
     % chains in the system and then determining largest connected network. By
     % system, we mean dilute + dense phase.
     
-    % Calculate all possible pairwise distances between sites. Scales as O(N^2).
+    % 1. Calculate all possible pairwise distances between sites. Scales as O(N^2).
     
     SitesInSystem = length(A); % Number of sites in system
     
@@ -251,11 +251,11 @@ function CondensateChainsG = generate_chain_graph(A,Length)
         Aj = reshape(A(j,4:6),1,[],3);
         dxyz = Ai-Aj; % Differences dx, dy, dz
         % Apply minimum image convention
-        dxyz = mod(dxyz+Length/2,Length)-Length/2;
+        dxyz = mod(dxyz+Length/2,Length)-Length/2; % Coordinates initially are [0,Length]
         B(:,j) = sqrt(sum(dxyz.^2,3));
     end
     
-    % Generate graph of all chains in the system: nodes = chains
+    % 2. Generate graph of all chains in the system: nodes = chains
     
     % Calculate adjacency matrix for sites. Do this by applying distance
     % criteria to find adjacent sites and then converting to 1's and 0's:
@@ -263,15 +263,15 @@ function CondensateChainsG = generate_chain_graph(A,Length)
     % Adjacency matrix for chains: N x N matrix s.t. nij = 1 if two chains are
     % adjacent if any sites between them are adjacent and 0 otherwise:
     L = A(:,3)+1; % Chain ID for each site
-    S = sparse(L,1:numel(L),1); % sij = 1 if site is in chain, 0 otherwise
+    S = sparse(L,1:numel(L),1); % sij = 1 if site j is in chain i, 0 otherwise
     D = S*C*S' > 0; % Adjacency matrix except dii = 1
-    D(1:size(D,1)+1:end) = 0; % Adjacency matrix for chains
+    D(1:size(D,1)+1:end) = 0; % Adjacency matrix for chains removing self-loops
     SystemChainsAllG = graph(D);
-        
-    % Generate graph of all chains in condensate: nodes = chains
     
-    % An edge in SystemG means that at least one site on two chains is
-    % adjacent. Find the largest sub-graph.
+    % 3. Generate sub-graph of all chains in condensate: nodes = chains
+    
+    % An edge in SystemChainsAllG means that at least one site on two
+    % chains is adjacent. Find the largest sub-graph.
     bincell = biconncomp(SystemChainsAllG, 'OutputForm', 'cell');
     [s,d] = cellfun(@size,bincell);
     out = max([s,d],[],'omitnan');
@@ -316,7 +316,8 @@ function [tvec,Gt,Freq,Storage,Loss,Visc,Comp,tau,X0,Y0] = ...
     
     % Take the continuous-time Fourier transform
     % (Could probably calculate this analytically to speed up the code.
-    % See equations in Rouse 1953.)
+    % See equations in Rouse 1953. Effectively, this is the same as doing
+    % the calculation symbolically.)
     Gw(w) = fourier(Gt(t),t,w); % Angular frequency, w
     
     % Calculate the average dynamic moduli
@@ -334,7 +335,7 @@ function [tvec,Gt,Freq,Storage,Loss,Visc,Comp,tau,X0,Y0] = ...
     % Find range of frequencies and sample the dynamic moduli
     min_order_w = floor(log10(2*pi/max(tau)));
     max_order_w = ceil(log10(2*pi/min(tau)));
-    Freq = logspace(min_order_w-3,max_order_w,1000); % All frequencies
+    Freq = logspace(min_order_w-3,max_order_w,1000); % All frequencies and then some
     Storage = double(Gw1(Freq));
     Loss = double(Gw2(Freq));
     
