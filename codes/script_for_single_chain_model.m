@@ -298,7 +298,7 @@ function [CondensateSitesG,ind_chain,siteType] = ...
         Aj = reshape(A(j,4:6),1,[],3);
         dxyz = Ai-Aj; % Differences dx, dy, dz
         % Apply minimum image convention
-        dxyz = mod(dxyz+Length/2,Length)-Length/2; % Coordinates initially are [0,Length]
+        dxyz = mod(dxyz+Length/2,Length)-Length/2; % Coordinates initially are [0,Length-1]
         B(:,j) = sqrt(sum(dxyz.^2,3));
     end
     
@@ -311,7 +311,7 @@ function [CondensateSitesG,ind_chain,siteType] = ...
     % adjacent if any sites between them are adjacent and 0 otherwise:
     L = A(:,3)+1; % Chain ID for each site
     S = sparse(L,1:numel(L),1); % sij = 1 if site j is in chain i, 0 otherwise
-    D = S*C*S' > 0; % Adjacency matrix except dii = 1
+    D = S*C*S' > 0; % Adjacency matrix for chains except dii = 1
     D(1:size(D,1)+1:end) = 0; % Adjacency matrix for chains removing self-loops
     SystemChainsG = graph(D);
         
