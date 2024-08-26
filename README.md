@@ -1,6 +1,6 @@
 # material_properties
 
-Simulation results and analysis codes for the computation of rheological properties in https://doi.org/10.1101/2023.04.06.535902
+Simulation results and analysis codes for the computation of rheological properties in https://doi.org/10.1038/s41567-024-02558-1
 
 The `source_data` folder contains all experimental and computational data for the final figures. The `raw_data` folder contains all raw data from the simulations for all variants at all available temperatures.
 
