@@ -9,8 +9,8 @@
 
 % The function `generate_chain_graph` includes a minor update as described
 % in the comments. Using the previous version of the code results in
-% slight differences that are well within error, e.g., for the crossover
-% frequency.
+% slight numerical differences that are also well within error, e.g., for
+% the crossover frequency (~1-2%, no qualitative changes).
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
@@ -285,9 +285,7 @@ function CondensateChainsG = generate_chain_graph(A,Length)
 
     % The above corrects the following code that finds the largest
     % sub-graph consisting only of biconnected components of the overall,
-    % undirected graph. Using the code below makes a slight difference
-    % (~1-2%, no qualitative changes) that is also within error, e.g., for
-    % the crossover frequency:
+    % undirected graph:
 
    % bincell = biconncomp(SystemChainsAllG, 'OutputForm', 'cell');
    % [s,d] = cellfun(@size,bincell);
