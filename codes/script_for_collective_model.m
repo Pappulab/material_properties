@@ -11,7 +11,8 @@
 % in the comments. Using the previous version of the code (as in
 % Alshareedah et al.) results in slight numerical differences, e.g., for
 % the average crossover frequency (~1-2%) and average viscosity (~1%).
-% There are no qualitative differences.
+% There are no qualitative differences. The previous version is commented
+% out.
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
