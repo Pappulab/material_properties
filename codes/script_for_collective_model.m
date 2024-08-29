@@ -7,6 +7,11 @@
 % analyzed at a time. Note temperature is assumed to be in energy units.
 % Also, note headers are not given in the output .csv files.
 
+% Note the function `generate_chain_graph` includes a minor update as
+% described in the comments. Using the previous version of the code results
+% in slight differences that are well within error, e.g., for the crossover
+% frequency.
+
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 % User input
@@ -272,13 +277,24 @@ function CondensateChainsG = generate_chain_graph(A,Length)
     
     % An edge in SystemChainsAllG means that at least one site on two
     % chains is adjacent. Find the largest sub-graph.
-    bincell = biconncomp(SystemChainsAllG, 'OutputForm', 'cell');
-    [s,d] = cellfun(@size,bincell);
-    out = max([s,d],[],'omitnan');
-    ind = d == out | s == out;
-    bincell_largest = bincell(ind);
+    [componentID, numComponents] = conncomp(SystemChainsAllG);
+    componentSizes = histcounts(componentID, 1:numComponents+1);
+    [~, largestComponentIdx] = max(componentSizes);
+    nodesInLargestComponent = (componentID == largestComponentIdx);
+    CondensateChainsG = subgraph(SystemChainsAllG, find(nodesInLargestComponent));
+
+    % The above corrects the following code that finds the largest
+    % sub-graph consisting only of biconnected components of the overall,
+    % undirected graph. Using the code below makes a slight (insignificant)
+    % difference that is within error, e.g., for the crossover frequency:
+
+   % bincell = biconncomp(SystemChainsAllG, 'OutputForm', 'cell');
+   % [s,d] = cellfun(@size,bincell);
+   % out = max([s,d],[],'omitnan');
+   % ind = d == out | s == out;
+   % bincell_largest = bincell(ind);
     % Generate largest sub-graph. Will be unique here.
-    CondensateChainsG = subgraph(SystemChainsAllG,cell2mat(bincell_largest));
+   % CondensateChainsG = subgraph(SystemChainsAllG,cell2mat(bincell_largest));
 
 end
 

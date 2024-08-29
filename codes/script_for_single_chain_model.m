@@ -9,6 +9,11 @@
 % to be in energy units. Also, note headers are not given in the output
 % .csv files.
 
+% Note the function `generate_site_graph` includes a minor update as
+% described in the comments. Using the previous version of the code results
+% in slight differences that are well within error, e.g., for the crossover
+% frequency.
+
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 % User input
@@ -18,7 +23,7 @@ Sites = 137; % Sites in each chain
 Res = 11; % Number of unique residue types
 Length = 120; % Length of cubic box on each side
 SnapTot = 605; % Total number of snapshots in trajectory
-SnapEq = 2; % Number of snapshots to analyze at end of file (> 1)
+SnapEq = 10; % Number of snapshots to analyze at end of file (> 1)
 Repl = 3; % Number of simulations (replicates) per temperature
 phi = 1; % Volume fraction (set this to phi_dens / phi_sat as needed in post-processing)
 b = 1; % Kuhn length
@@ -317,14 +322,25 @@ function [CondensateSitesG,ind_chain,siteType] = ...
         
     % 3. Generate graph of all chains in condensate: nodes = chains
     
-    % An edge in SystemChainsG means that at least one site on two chains is
-    % adjacent. Find the largest sub-graph.
-    bincell = biconncomp(SystemChainsG, 'OutputForm', 'cell');
-    [s,d] = cellfun(@size,bincell);
-    out = max([s,d],[],'omitnan');
-    ind = d == out | s == out;
-    bincell_largest = bincell(ind);
-    ind_chain = cell2mat(bincell_largest); % Which nodes
+    % An edge in SystemChainsAllG means that at least one site on two
+    % chains is adjacent. Find the largest sub-graph.
+    [componentID, numComponents] = conncomp(SystemChainsG);
+    componentSizes = histcounts(componentID, 1:numComponents+1);
+    [~, largestComponentIdx] = max(componentSizes);
+    nodesInLargestComponent = (componentID == largestComponentIdx);
+    ind_chain = find(nodesInLargestComponent); % Which nodes
+
+    % The above corrects the following code that finds the largest
+    % sub-graph consisting only of biconnected components of the overall,
+    % undirected graph. Using the code below makes a slight (insignificant)
+    % difference that is within error, e.g., for the crossover frequency:
+
+   % bincell = biconncomp(SystemChainsG, 'OutputForm', 'cell');
+   % [s,d] = cellfun(@size,bincell);
+   % out = max([s,d],[],'omitnan');
+   % ind = d == out | s == out;
+   % bincell_largest = bincell(ind);
+   % ind_chain = cell2mat(bincell_largest); % Which nodes
         
     % 4. Generate adjacency matrix for single chain in condensate: nodes = sites
     
