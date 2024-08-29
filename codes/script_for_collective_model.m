@@ -9,8 +9,8 @@
 
 % The function `generate_chain_graph` includes a minor update as described
 % in the comments. Using the previous version of the code results in
-% slight numerical differences that are also well within error, e.g., for
-% the crossover frequency (~1-2%, no qualitative changes).
+% slight numerical differences, e.g., for the average crossover frequency
+% (~1-2%) and average viscosity (~1%). There are no qualitative differences. 
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
