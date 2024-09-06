@@ -4,4 +4,4 @@ Simulation results and analysis codes for the computation of rheological propert
 
 The `source_data` folder contains all experimental and computational data for the final figures.
 
-The `trajectories` folder contains the three trajectory files for the WT^+NLS system at the simulation temperature, T = 53. For the A1-LCD, this temperature corresponds to 296.8 K. Please also the .m files in the `codes` folder along with the comments.
+The `trajectories` folder contains the three trajectory files for the WT^+NLS system at the simulation temperature, T = 53. For the A1-LCD, this temperature corresponds to 296.8 K. Please also see the .m files in the `codes` folder along with the comments.
