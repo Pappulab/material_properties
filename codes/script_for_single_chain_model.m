@@ -10,10 +10,10 @@
 % .csv files.
 
 % The function `generate_site_graph` includes a minor update as described
-% in the comments. Using the previous version of the code (as in
-% Alshareedah et al.) results in minor numerical differences, e.g., for the
-% average crossover frequency (<<1%). There are no qualitative differences.
-% The previous version is commented out here.
+% in the comments below. Using the previous version of the code (as in
+% Alshareedah et al.) results in a difference in the average crossover
+% frequency for WT^+NLS of <<1% and no qualitative differences for any of
+% the rheological properties. The previous version is commented out here.
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
