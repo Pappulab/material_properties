@@ -12,8 +12,10 @@
 % The function `generate_site_graph` includes a minor update as described
 % in the comments below. Using the previous version of the code (as in
 % Alshareedah et al.) results in a difference in the average crossover
-% frequency for WT^+NLS of <<1% and no qualitative differences for any of
-% the rheological properties. The previous version is commented out here.
+% frequency for WT^+NLS of ~1% and no qualitative differences in any of the
+% rheological properties. The previous version is commented out here.
+
+% Other update: analytic rather than symbolic calculation of the moduli.
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
@@ -73,7 +75,7 @@ time_vector = cell(numfiles,1);
 freq_vector = cell(numfiles,1);
 
 % Take the Fourier transform symbolically
-syms t w real
+% syms t w real
 
 for k = 1:numfiles
 
@@ -130,7 +132,7 @@ for k = 1:numfiles
         [tvec,Gt,Freq,Storage,Loss,avg_Visc,std_Visc,avg_Comp,std_Comp,...
             tau_all,std_tau_all,X0,Y0,ChainsSubG] = ...
             calculate_single_chain_moduli(CondensateSitesG,ind_chain,...
-            Sites,siteType,b,zeta,T,phi,t,w,RelEl,weighting_option);
+            Sites,siteType,b,zeta,T,phi,RelEl,weighting_option);
 
         % Time and frequency
         out1{n} = tvec;
@@ -325,10 +327,10 @@ function [CondensateSitesG,ind_chain,siteType] = ...
     
     % An edge in SystemChainsAllG means that at least one site on two
     % chains is adjacent. Find the largest sub-graph.
-    [componentID, numComponents] = conncomp(SystemChainsG);
-    componentSizes = histcounts(componentID, 1:numComponents+1);
+   [componentID, ~] = conncomp(SystemChainsG);
+    componentSizes = accumarray(componentID(:), 1);
     [~, largestComponentIdx] = max(componentSizes);
-    nodesInLargestComponent = (componentID == largestComponentIdx);
+    nodesInLargestComponent = find(componentID == largestComponentIdx);
     ind_chain = find(nodesInLargestComponent); % Which nodes
 
     % The above corrects the following code that finds the largest
@@ -398,7 +400,7 @@ end
 function [tvec,Gt,Freq,Storage,Loss,avg_Visc,std_Visc,avg_Comp,...
     std_Comp,tau_all,std_tau_all,X0,Y0,ChainsSubG] = ...
     calculate_single_chain_moduli(CondensateSitesG,ind_chain,Sites,...
-    siteType,b,zeta,T,phi,t,w,RelEl,weighting_option)
+    siteType,b,zeta,T,phi,RelEl,weighting_option)
     
     % Calculates viscoelastic properties of each chain according to
     % graph-theoretic formulation of Rouse-Zimm model. Includes option of using
@@ -470,18 +472,19 @@ function [tvec,Gt,Freq,Storage,Loss,avg_Visc,std_Visc,avg_Comp,...
     std_tau_all = std([tau{:}],0,2);
     
     % Calculate the relaxation modulus in units of pressure
-    Gt(t) = (phi*T/(Sites*b^3))*sum(exp(-t./tau_all))*heaviside(t);
+   % Gt(t) = (phi*T/(Sites*b^3))*sum(exp(-t./tau_all))*heaviside(t);
     % The Heaviside function sets G(t) = 0 for t < 0.
-    
+    min_order_t = floor(log10(min(tau_all)));
+    max_order_t = ceil(log10(max(tau_all)));
+    tvec = logspace(min_order_t-1,max_order_t+1,1000); % Covers all tau
+    Gt = (phi*T/(NumChains*b^3))*sum(exp(-tvec./tau_all));
+
     % Take the continuous-time Fourier transform
-    % (Could probably calculate this analytically to speed up the code.
-    % See equations in Rouse 1953. Effectively, this is the same as doing
-    % the calculation symbolically.)
-    Gw(w) = fourier(Gt(t),t,w); % Angular frequency w
+   % Gw(w) = fourier(Gt(t),t,w); % Angular frequency w
     
     % Calculate the average dynamic moduli
-    Gw1(w) = real(1i*w*Gw(w)); % Storage modulus, G'
-    Gw2(w) = imag(1i*w*Gw(w)); % Loss modulus, G"
+   % Gw1(w) = real(1i*w*Gw(w)); % Storage modulus, G'
+   % Gw2(w) = imag(1i*w*Gw(w)); % Loss modulus, G"
     
     % Calculate average viscosity per snapshot
     avg_Visc = mean(Visc);
@@ -496,17 +499,19 @@ function [tvec,Gt,Freq,Storage,Loss,avg_Visc,std_Visc,avg_Comp,...
     % Convert moduli to type double
     
     % Find range of tau and sample the relaxation modulus
-    min_order_t = floor(log10(min(tau_all)));
-    max_order_t = ceil(log10(max(tau_all)));
-    tvec = logspace(min_order_t-1,max_order_t+1,1000); % Covers all tau
-    Gt = double(Gt(tvec));
+   % min_order_t = floor(log10(min(tau_all)));
+   % max_order_t = ceil(log10(max(tau_all)));
+   % tvec = logspace(min_order_t-1,max_order_t+1,1000); % Covers all tau
+   % Gt = double(Gt(tvec));
     
     % Find range of frequencies and sample the dynamic moduli
     min_order_w = floor(log10(2*pi/max(tau_all)));
     max_order_w = ceil(log10(2*pi/min(tau_all)));
     Freq = logspace(min_order_w-3,max_order_w,1000); % All frequencies
-    Storage = double(Gw1(Freq));
-    Loss = double(Gw2(Freq));
+    Storage = (phi*T/(NumChains*b^3))*sum(Freq.^2.*tau_all.^2./(1+Freq.^2.*tau_all.^2));
+    Loss = (phi*T/(NumChains*b^3))*sum(Freq.*tau_all./(1+Freq.^2.*tau_all.^2));
+   % Storage = double(Gw1(Freq));
+   % Loss = double(Gw2(Freq));
     
     % Calculate crossover
     [X0,Y0] = intersections(Freq,Storage,Freq,Loss,'robust');
