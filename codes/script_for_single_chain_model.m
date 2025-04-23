@@ -15,8 +15,6 @@
 % frequency for WT^+NLS of ~1% and no qualitative differences in any of the
 % rheological properties. The previous version is commented out here.
 
-% Other update: analytic rather than symbolic calculation of the moduli.
-
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 % User input
@@ -477,7 +475,7 @@ function [tvec,Gt,Freq,Storage,Loss,avg_Visc,std_Visc,avg_Comp,...
     min_order_t = floor(log10(min(tau_all)));
     max_order_t = ceil(log10(max(tau_all)));
     tvec = logspace(min_order_t-1,max_order_t+1,1000); % Covers all tau
-    Gt = (phi*T/(NumChains*b^3))*sum(exp(-tvec./tau_all));
+    Gt = (phi*T/(Sites*b^3))*sum(exp(-tvec./tau_all));
 
     % Take the continuous-time Fourier transform
    % Gw(w) = fourier(Gt(t),t,w); % Angular frequency w
@@ -508,8 +506,8 @@ function [tvec,Gt,Freq,Storage,Loss,avg_Visc,std_Visc,avg_Comp,...
     min_order_w = floor(log10(2*pi/max(tau_all)));
     max_order_w = ceil(log10(2*pi/min(tau_all)));
     Freq = logspace(min_order_w-3,max_order_w,1000); % All frequencies
-    Storage = (phi*T/(NumChains*b^3))*sum(Freq.^2.*tau_all.^2./(1+Freq.^2.*tau_all.^2));
-    Loss = (phi*T/(NumChains*b^3))*sum(Freq.*tau_all./(1+Freq.^2.*tau_all.^2));
+    Storage = (phi*T/(Sites*b^3))*sum(Freq.^2.*tau_all.^2./(1+Freq.^2.*tau_all.^2));
+    Loss = (phi*T/(Sites*b^3))*sum(Freq.*tau_all./(1+Freq.^2.*tau_all.^2));
    % Storage = double(Gw1(Freq));
    % Loss = double(Gw2(Freq));
     

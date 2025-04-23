@@ -13,8 +13,6 @@
 % frequency for WT^+NLS of ~1-2% and no qualitative differences in any of
 % the rheological properties. The previous version is commented out here.
 
-% Other update: analytic rather than symbolic calculation of the moduli.
-
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 % User input
